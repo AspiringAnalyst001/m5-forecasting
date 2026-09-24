@@ -1,4 +1,5 @@
 """LightGBM forecaster: one model per store, target features shifted >= 28 days, Tweedie loss."""
+import gc
 import lightgbm as lgb
 import numpy as np
 import pandas as pd
@@ -61,15 +62,22 @@ class LightGBMForecaster:
             }
         del prices
 
-    def _rows(self, s: dict, feats: dict, mask: np.ndarray):
+    def _matrix(self, s: dict, feats: dict, mask: np.ndarray):
+        """Build a float32 design matrix directly (no pandas copies)."""
         i, t = np.nonzero(mask)
-        data = {name: arr[i, t] for name, arr in feats.items()}
-        for name in ("dow", "dom", "month", "event_1", "event_type_1"):
-            data[name] = self.cal[name][t]
-        data["snap"] = self.cal[f"snap_{s['state']}"][t]
-        data["dept"] = s["dept"][i]
-        data["cat"] = s["cat"][i]
-        return pd.DataFrame(data).astype(np.float32), i, t
+        cal_cols = ("dow", "dom", "month", "event_1", "event_type_1")
+        names = list(feats) + list(cal_cols) + ["snap", "dept", "cat"]
+        X = np.empty((len(i), len(names)), dtype=np.float32)
+        for j, name in enumerate(feats):
+            X[:, j] = feats[name][i, t]
+        j = len(feats)
+        for name in cal_cols:
+            X[:, j] = self.cal[name][t]
+            j += 1
+        X[:, j] = self.cal[f"snap_{s['state']}"][t]
+        X[:, j + 1] = s["dept"][i]
+        X[:, j + 2] = s["cat"][i]
+        return X, names, i, t
 
     def _forecast_store(self, store: str, s: dict, Y_store: np.ndarray, T: int, horizon: int):
         T_pad = T + horizon
@@ -87,12 +95,14 @@ class LightGBMForecaster:
         train_mask = ~np.isnan(A) & (t_idx >= T - self.train_days)
         pred_mask = on_sale & (t_idx >= T)
 
-        X, i, t = self._rows(s, feats, train_mask)
-        train_set = lgb.Dataset(X, label=A[i, t], categorical_feature=CATEGORICAL)
+        X, names, i, t = self._matrix(s, feats, train_mask)
+        y = A[i, t]
+        train_set = lgb.Dataset(X, label=y, feature_name=names, categorical_feature=CATEGORICAL)
         model = lgb.train(self.params, train_set, num_boost_round=self.num_rounds)
-        self.importances[store] = pd.Series(model.feature_importance("gain"), index=X.columns)
+        self.importances[store] = pd.Series(model.feature_importance("gain"), index=names)
+        del train_set, X, y, i, t, train_mask      # free before building the prediction rows
 
-        Xp, ip, tp = self._rows(s, feats, pred_mask)
+        Xp, _, ip, tp = self._matrix(s, feats, pred_mask)
         out = np.zeros((len(Y_store), horizon), dtype=np.float32)   # unlisted items forecast 0
         out[ip, tp - T] = model.predict(Xp)
         return out
@@ -106,6 +116,7 @@ class LightGBMForecaster:
         for store, s in self.stores.items():
             out[s["rows"]] = self._forecast_store(store, s, Y_train[s["rows"]], T, horizon)
             print(f"  {self.name}: {store} done")
+            gc.collect()   # free the large LGBM model before the next store
 
         RESULTS_DIR.mkdir(exist_ok=True)
         pd.DataFrame(self.importances).to_csv(RESULTS_DIR / f"importance_{self.name}_T{T}.csv")

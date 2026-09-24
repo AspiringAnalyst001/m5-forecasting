@@ -19,6 +19,13 @@ from m5.models.registry import get_models
 
 RESULTS_DIR = ROOT / "results"
 
+def peak_gb() -> float:
+    """Peak memory of this process so far (working-set peak on Windows)."""
+    import psutil
+
+    info = psutil.Process().memory_info()
+    return round(getattr(info, "peak_wset", info.rss) / 1e9, 2)
+
 
 def backtest_fold(forecaster: Forecaster, Y: np.ndarray, fold: Fold, wrmsse: WRMSSE) -> dict:
     """Forecast one fold. The forecaster only ever receives the training days."""
@@ -41,6 +48,7 @@ def backtest_fold(forecaster: Forecaster, Y: np.ndarray, fold: Fold, wrmsse: WRM
         "wape": wape(Y_true, Y_pred),
         "mase": mase(Y_true, Y_pred, Y_train),
         "seconds": seconds,
+        "peak_gb": peak_gb(),
     }
     for i, value in enumerate(wrmsse.score_by_level(Y_true, Y_pred), start=1):
         row[f"level_{i}"] = value
