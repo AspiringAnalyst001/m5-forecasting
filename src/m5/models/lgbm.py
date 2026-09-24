@@ -4,11 +4,10 @@ import lightgbm as lgb
 import numpy as np
 import pandas as pd
 
-from m5.config import ROOT
+from m5.config import RESULTS_DIR
 from m5.data.load import load_calendar, load_prices
 from m5.features.build import calendar_arrays, price_features, price_matrix, target_features
 
-RESULTS_DIR = ROOT / "results"
 CATEGORICAL = ["dept", "cat", "event_1", "event_type_1"]
 
 DEFAULT_PARAMS = {

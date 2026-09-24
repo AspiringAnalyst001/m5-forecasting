@@ -11,13 +11,12 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from m5.config import FOLDS, HORIZON, ROOT, Fold
+from m5.config import FOLDS, HORIZON, RESULTS_DIR, Fold
 from m5.data.load import load_calendar, load_prices, load_sales
 from m5.evaluation.metrics import WRMSSE, last28_dollar_sales, mase, wape
 from m5.models.baselines import Forecaster
 from m5.models.registry import get_models
 
-RESULTS_DIR = ROOT / "results"
 
 def peak_gb() -> float:
     """Peak memory of this process so far (working-set peak on Windows)."""

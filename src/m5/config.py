@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = Path(os.environ.get("M5_DATA_DIR", ROOT / "data"))
 RAW_DIR = DATA_DIR / "raw"
 PROCESSED_DIR = DATA_DIR / "processed"
+RESULTS_DIR = Path(os.environ.get("M5_RESULTS_DIR", ROOT / "results"))
 
 N_SERIES = 30_490
 N_DAYS = 1_941          # d_1 .. d_1941 in sales_train_evaluation

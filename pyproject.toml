@@ -2,6 +2,13 @@
 name = "m5"
 version ="0.1.0"
 requires-python = ">=3.11"
+dependencies = [
+    "numpy", "pandas", "pyarrow", "polars", "scipy", "lightgbm",
+    "statsforecast", "pandera", "psutil", "mlflow",
+]
+
+[project.optional-dependencies]
+dl = ["neuralforecast"]
 
 [build-system]
 requires = ["setuptools>=68"]
