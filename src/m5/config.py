@@ -33,5 +33,6 @@ FOLDS = {
     "fold1": Fold("fold1", 1829, 1830, 1857),
     "fold2": Fold("fold2", 1857, 1858, 1885),
     "fold3": Fold("fold3", 1885, 1886, 1913),
+    "xmas": Fold("xmas", 1777, 1778, 1805),
     "holdout": Fold("holdout", 1913, 1914, 1941),  # touch ONLY at the very end
 }

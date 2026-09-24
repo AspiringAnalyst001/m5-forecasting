@@ -116,3 +116,19 @@ def build_wrmsse(train_end: int) -> WRMSSE:
 def wape(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     """Weighted absolute percentage error: total absolute error / total actual volume."""
     return float(np.abs(y_true - y_pred).sum() / np.abs(y_true).sum())
+
+
+def mase(Y_true: np.ndarray, Y_pred: np.ndarray, Y_train: np.ndarray, season: int = 1) -> float:
+    """Mean absolute scaled error, averaged over bottom-level series with a valid scale."""
+    Yt = Y_train.astype(np.float32)
+    nonzero = Yt > 0
+    first = np.where(nonzero.any(axis=1), nonzero.argmax(axis=1), Yt.shape[1] - 1)
+    diffs = np.abs(Yt[:, season:] - Yt[:, :-season])
+    mask = np.arange(diffs.shape[1])[None, :] >= first[:, None]
+    scale = (diffs * mask).sum(axis=1, dtype=np.float64) / np.maximum(mask.sum(axis=1), 1)
+
+    ok = scale > 0
+    if not ok.any():
+        return float("nan")
+    mae = np.abs(Y_true.astype(np.float32) - Y_pred.astype(np.float32)).mean(axis=1)
+    return float((mae[ok] / scale[ok]).mean())

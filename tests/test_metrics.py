@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
-
-from m5.evaluation.metrics import LEVELS, WRMSSE, build_aggregation_matrix, wape
+from m5.evaluation.metrics import LEVELS, WRMSSE, build_aggregation_matrix, wape, mase
 
 
 def make_meta() -> pd.DataFrame:
@@ -59,3 +58,9 @@ def test_wape():
     y = np.array([10.0, 10.0])
     p = np.array([8.0, 12.0])
     assert np.isclose(wape(y, p), 0.2)
+
+def test_mase_perfect_forecast_is_zero():
+    rng = np.random.default_rng(1)
+    Y_train = rng.poisson(3, size=(4, 100))
+    Y_true = rng.poisson(3, size=(4, 28))
+    assert mase(Y_true, Y_true, Y_train) == 0.0
