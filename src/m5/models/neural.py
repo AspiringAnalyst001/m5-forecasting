@@ -15,11 +15,12 @@ STATES = ["CA", "TX", "WI"]
 
 class NeuralForecastWrapper:
     def __init__(self, name, model_cls="NHITS", loss="mse", history=730, input_size=112,
-                 max_steps=3000, use_exog=True, model_kwargs=None):
+                 max_steps=3000, use_exog=True, model_kwargs=None, scaler_type="standard"):
         self.name, self.model_cls, self.loss = name, model_cls, loss
         self.history, self.input_size, self.max_steps = history, input_size, max_steps
         self.use_exog = use_exog
         self.model_kwargs = model_kwargs or {}
+        self.scaler_type = scaler_type
         self.bound = False
 
     # ---- known-in-advance inputs, prepared once ----
@@ -115,7 +116,7 @@ class NeuralForecastWrapper:
 
         kwargs = dict(
             h=horizon, input_size=self.input_size, loss=self._loss(), max_steps=self.max_steps,
-            scaler_type="standard", start_padding_enabled=True, random_seed=1,
+            scaler_type=self.scaler_type, start_padding_enabled=True, random_seed=1,
             enable_checkpointing=False, logger=False,
         )
         if self.use_exog:
