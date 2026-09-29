@@ -100,7 +100,7 @@ class NeuralForecastWrapper:
         if self.loss == "poisson":
             return DistributionLoss(distribution="Poisson")
         if self.loss == "tweedie":
-            return DistributionLoss(distribution="Tweedie")
+            return DistributionLoss(distribution="Tweedie", rho=1.5)
         raise ValueError(f"unknown loss {self.loss!r}")
 
     # ---- forecaster interface ----
