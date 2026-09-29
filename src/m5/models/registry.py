@@ -20,6 +20,8 @@ def get_models() -> dict[str, Forecaster]:
         NeuralForecastWrapper(name="nhits_exog_poisson", use_exog=True, loss="poisson"),
         ClosureRule(NeuralForecastWrapper(name="nhits_exog", use_exog=True)),
         NeuralForecastWrapper(name="nhits_exog_tweedie", use_exog=True, loss="tweedie"),
+        NeuralForecastWrapper(name="nhits_exog_poisson_noscale", use_exog=True, loss="poisson",
+                               scaler_type="identity"),
     ):
         models[m.name] = m
     return models
