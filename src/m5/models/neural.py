@@ -98,6 +98,8 @@ class NeuralForecastWrapper:
             return MSE()
         if self.loss == "poisson":
             return DistributionLoss(distribution="Poisson")
+        if self.loss == "tweedie":
+            return DistributionLoss(distribution="Tweedie")
         raise ValueError(f"unknown loss {self.loss!r}")
 
     # ---- forecaster interface ----

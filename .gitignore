@@ -1,6 +1,7 @@
 .venv/
-data/
+/data/
 mlruns/
+results/
 __pycache__/
 .ipynb_checkpoints/
 *.parquet
