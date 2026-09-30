@@ -1,8 +1,6 @@
 .venv/
 /data/
 mlruns/
-results/
 __pycache__/
 .ipynb_checkpoints/
-*.parquet
-*.csv
+*.egg-info/
