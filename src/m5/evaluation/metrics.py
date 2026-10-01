@@ -132,3 +132,14 @@ def mase(Y_true: np.ndarray, Y_pred: np.ndarray, Y_train: np.ndarray, season: in
         return float("nan")
     mae = np.abs(Y_true.astype(np.float32) - Y_pred.astype(np.float32)).mean(axis=1)
     return float((mae[ok] / scale[ok]).mean())
+
+def pinball_loss(y_true: np.ndarray, y_pred: np.ndarray, quantile: float) -> float:
+    """Mean pinball (quantile) loss. Lower is better; 0 is a perfect forecast."""
+    diff = y_true.astype(np.float32) - y_pred.astype(np.float32)
+    return float(np.mean(np.maximum(quantile * diff, (quantile - 1) * diff)))
+
+
+def coverage(y_true: np.ndarray, lo: np.ndarray, hi: np.ndarray) -> float:
+    """Share of true values falling inside [lo, hi]. Compare against the interval's
+    nominal level (e.g. an 80% interval should cover close to 80% of points)."""
+    return float(np.mean((y_true >= lo) & (y_true <= hi)))
